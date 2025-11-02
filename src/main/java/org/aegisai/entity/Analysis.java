@@ -5,11 +5,15 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.aegisai.constant.AnalysisStatus;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.aegisai.constant.AnalysisStatus.*;
 
 @Entity
 @Table(name = "analyses")
@@ -24,13 +28,13 @@ public class Analysis {
     @Column(name = "analysis_id")
     private Integer analysisId;
 
-    // User와 N:1 관계
+    /*// User와 N:1 관계
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-    @Column(nullable = false)
-    private Integer status; // 0: 대기, 2: 완료, 3: 실패
+*/
+    @Enumerated(EnumType.STRING)
+    private AnalysisStatus status; // 0: 대기, 2: 완료, 3: 실패
 
     @CreationTimestamp
     @Column(name = "submitted_at", updatable = false)
@@ -56,11 +60,6 @@ public class Analysis {
     @Builder.Default
     private List<Vulnerability> vulnerabilities = new ArrayList<>();
 
-    // 비즈니스 로직: User 설정 (양방향 관계 유지용)
-    public void setUser(User user) {
-        this.user = user;
-    }
-
     // 비즈니스 로직: Vulnerability 추가
     public void addVulnerability(Vulnerability vulnerability) {
         vulnerabilities.add(vulnerability);
@@ -69,7 +68,7 @@ public class Analysis {
 
     // 비즈니스 로직: 분석 완료 처리
     public void completeAnalysis(int high, int medium, int low) {
-        this.status = 2;
+        this.status = COMPLETED;
         this.completedAt = LocalDateTime.now();
         this.highVulCount = high;
         this.mediumVulCount = medium;
@@ -78,7 +77,7 @@ public class Analysis {
 
     // 비즈니스 로직: 분석 실패 처리
     public void failAnalysis(String errorMessage) {
-        this.status = 3;
+        this.status = FAILED;
         this.completedAt = LocalDateTime.now();
         this.errorMessage = errorMessage;
     }

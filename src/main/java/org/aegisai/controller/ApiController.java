@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -18,7 +19,7 @@ public class ApiController {
     }
 
     @PostMapping("/scan-vulnerability")
-    public Mono<VulnerabilitiesDto> requestApi(@RequestBody AnalysisDto analysisDto) {
+    public Flux<VulnerabilitiesDto> requestApi(@RequestBody AnalysisDto analysisDto) {
 
         return apiService.request(analysisDto);
     }

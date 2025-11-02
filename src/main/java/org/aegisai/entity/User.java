@@ -42,9 +42,9 @@ public class User {
     @Builder.Default
     private List<Analysis> analyses = new ArrayList<>();
 
-    // 비즈니스 로직: Analysis 추가
+   /* // 비즈니스 로직: Analysis 추가
     public void addAnalysis(Analysis analysis) {
         analyses.add(analysis);
         analysis.setUser(this);
-    }
+    }*/
 }
