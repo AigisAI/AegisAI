@@ -73,7 +73,7 @@ export default function EnhancedSecurityChecker() {
     
     try {
       // 백엔드 API 호출
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/scan-vulnerability`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/scan-vulnerability`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
