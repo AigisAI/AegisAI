@@ -29,8 +29,7 @@ RUN ./gradlew build -x test
 # ---------------------------------
 # 2. 실행(Runtime) 단계
 # ---------------------------------
-# 더 가볍고 보안에 유리한 JRE 이미지 사용
-FROM java-21-amazon-corretto-devel
+FROM openjdk:21-jre-slim
 
 WORKDIR /app
 
