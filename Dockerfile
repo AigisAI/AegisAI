@@ -29,7 +29,7 @@ RUN ./gradlew build -x test
 # ---------------------------------
 # 2. 실행(Runtime) 단계
 # ---------------------------------
-FROM openjdk:21
+FROM bellsoft/liberica-openjdk-alpine:21
 WORKDIR /app
 
 # 'builder' 단계에서 생성된 최종 .jar 파일을 복사
