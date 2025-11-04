@@ -9,7 +9,7 @@ FROM gradle:8.14.3-jdk21 AS builder
 # (프로젝트의 Node.js 버전에 맞게 16.x, 18.x 등으로 수정)
 RUN apt-get update && \
     apt-get install -y curl && \
-    curl -fsSL https://deb.nodesource.com/setup_10.9.3 | bash - && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs
 
 WORKDIR /workspace
