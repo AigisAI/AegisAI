@@ -13,9 +13,11 @@ import java.util.List;
 @RestController
 public class ApiController {
 
-    private ApiService apiService;
-    public void apiService(ApiService apiService){
-        this.apiService=apiService;
+
+    private final ApiService apiService;
+
+    public ApiController(ApiService apiService) {
+        this.apiService = apiService;
     }
 
     @PostMapping("/api/scan-vulnerability")
@@ -23,6 +25,5 @@ public class ApiController {
 
         return apiService.request(analysisDto);
     }
-
 
 }
