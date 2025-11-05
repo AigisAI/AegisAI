@@ -35,6 +35,16 @@ WORKDIR /app
 # 'builder' 단계에서 생성된 최종 .jar 파일을 복사
 COPY --from=builder /workspace/build/libs/*.jar app.jar
 
+# 환경변수로 Spring Boot 데이터베이스 설정
+ENV SPRING_DATASOURCE_URL=jdbc:mysql://aegisai-db.c7yyscc6ybmh.ap-northeast-2.rds.amazonaws.com:3306/aegisai?useSSL=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+ENV SPRING_DATASOURCE_USERNAME=admin
+ENV SPRING_DATASOURCE_PASSWORD=${Aegis1031!}
+ENV SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+ENV SPRING_JPA_HIBERNATE_DDL_AUTO=update
+ENV SPRING_JPA_SHOW_SQL=true
+ENV SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=true
+ENV SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQL8Dialect
+
 # 컨테이너가 노출할 포트 (스프링 부트 기본 포트 8080)
 EXPOSE 8080
 
