@@ -15,16 +15,16 @@ RUN apt-get update && \
 WORKDIR /workspace
 
 # Gradle 캐시를 활용하기 위해 빌드 파일 먼저 복사
-COPY build.gradle settings.gradle gradlew ./
-COPY .gradle ./.gradle
+#COPY build.gradle settings.gradle gradlew ./
+#COPY .gradle ./.gradle
 
 # 전체 프로젝트 소스 코드 복사
 COPY . .
 
 # Gradle 실행 권한 부여 및 빌드 실행
 # 이 명령어 하나가 React 설치, React 빌드, Spring 빌드를 모두 처리합니다.
-RUN chmod +x ./gradlew
-RUN ./gradlew build -x test
+#RUN chmod +x ./gradlew
+#RUN ./gradlew build -x test
 
 # ---------------------------------
 # 2. 실행(Runtime) 단계

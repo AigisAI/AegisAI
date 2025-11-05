@@ -10,7 +10,7 @@ public class MainController {
 
     @GetMapping("/")
     public String main(){
-    return "forward:/index";
+    return "forward:/index.html";
     }
 
 }
