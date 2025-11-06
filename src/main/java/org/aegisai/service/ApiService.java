@@ -1,5 +1,6 @@
 package org.aegisai.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.aegisai.constant.AnalysisStatus;
 import org.aegisai.constant.SeverityStatus;
 
@@ -36,11 +37,11 @@ public class ApiService {
                       VulnerabilityRepository vulnerabilityRepository,
                       GeminiService geminiService) {
 
-        WebClient webClient_model1 = webClientBuilder //codebert
-                .baseUrl("https://api-inference.huggingface.co/models/mrm8488/codebert-base-finetuned-detect-insecure-code")
+        this.webClient_model1 = webClientBuilder //codebert
+                .baseUrl("https://router.huggingface.co/hf-inference/models/mrm8488/codebert-base-finetuned-detect-insecure-code")
                 .build();
 
-        WebClient webClient_model2 = webClientBuilder //code t5
+        this.webClient_model2 = webClientBuilder //code t5
                 .baseUrl("http://34.47.124.100:8000")
                 .build();
         
@@ -52,13 +53,32 @@ public class ApiService {
 
     public Integer requestModel1(AnalysisDto analysisDto){
         //vulnerable status generate
+        // API 응답은 ClassifierResponse[][] (2차원 배열) 형태입니다.
         return webClient_model1.post()
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(analysisDto)
                 .retrieve()
-                .bodyToMono(Integer.class) // Dto 목록이 아닌 Integer로 직접 받음
-                .block();
+                .bodyToMono(JsonNode.class) // 1. 응답을 JsonNode로 받습니다.
+                .map(rootNode -> {
+                    // 2. JSON 구조 [[ {"label": ...} ]] 를 직접 탐색합니다.
+                    try {
+                        // rootNode.get(0) -> [ {"label": ...} ] (첫 번째 배열)
+                        // rootNode.get(0).get(0) -> {"label": ...} (첫 번째 객체)
+                        // rootNode.get(0).get(0).get("label") -> "LABEL_1" (label 값)
+                        String label = rootNode.get(0).get(0).get("label").asText();
+
+                        // 3. 레이블 문자열을 Integer로 변환합니다.
+                        return "LABEL_1".equals(label) ? 1 : 0;
+
+                    } catch (Exception e) {
+                        // JsonNode 탐색 중 오류 발생 시 (예: API 응답 형식이 다른 경우)
+                        System.err.println("API 응답 파싱 실패: " + e.getMessage());
+                        return -1; // 오류를 나타내는 값 (예: -1)
+                    }
+                })
+                .block(); // 동기식으로 결과를 기다림
     }
+
 
     public String requestModel2(AnalysisDto analysisDto){
         //fixed code generate
