@@ -12,7 +12,7 @@ public class AnalysisDto {
 
     @Getter
     @Setter
-    private String language;
+    private String fixedcode;
 
 }
 

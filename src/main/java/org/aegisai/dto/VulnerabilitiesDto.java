@@ -1,8 +1,6 @@
 package org.aegisai.dto;
 
-import jakarta.persistence.*;
 import lombok.Getter;
-import org.aegisai.entity.Analysis;
 
 public class VulnerabilitiesDto {
 
