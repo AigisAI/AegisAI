@@ -1,5 +1,8 @@
 package org.aegisai.constant;
 
 public enum SeverityStatus {
-    CRITICAL, HIGH, MEDIUM, LOW
+    CRITICAL, 
+    HIGH, 
+    MEDIUM, 
+    LOW
 }
