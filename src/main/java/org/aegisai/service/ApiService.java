@@ -50,7 +50,10 @@ public class ApiService {
 
     public Integer requestModel1(AnalysisDto analysisDto){
         //vulnerable status generate
-        // API 응답은 ClassifierResponse[][] (2차원 배열) 형태입니다.
+        String codeSnippet = analysisDto.getInputcode();
+
+        // Python의 {"inputs": "..."}와 동일한 구조의 Map 생성
+        java.util.Map<String, String> payload = java.util.Map.of("inputs", codeSnippet);
         return webClient_model1.post()
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(analysisDto)
