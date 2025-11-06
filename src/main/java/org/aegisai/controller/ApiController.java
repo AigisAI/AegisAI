@@ -28,13 +28,12 @@ public class ApiController {
         ResponseDto body;
         Integer result = apiService.requestModel1(analysisDto); //code bert
         if (result==0) {
-            body = new ResponseDto("200", "안전한 코드입니다.");
+            body = new ResponseDto("200", "안전한 코드입니다.",0);
             return ResponseEntity.ok(body).getBody();
         }
         else {
-            body = new ResponseDto("VULNERABLE", "취약한 코드입니다.");
+            body = new ResponseDto("VULNERABLE", "취약한 코드입니다.",1);
         }
-        body.setLlmresponse1(1);
         body.setLlmresponse3(apiService.requestModel3(analysisDto)); //llm
         body.setLlmresponse2(apiService.requestModel2(analysisDto)); //code t5
         body.setLlmresponse3(apiService.requestModel3(analysisDto)); //llm

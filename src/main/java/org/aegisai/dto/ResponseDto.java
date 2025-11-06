@@ -4,8 +4,6 @@ package org.aegisai.dto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.List;
 
 @Getter
@@ -13,12 +11,9 @@ import java.util.List;
 @AllArgsConstructor
 public class ResponseDto {
 
-
     private String status;
 
-
     private String message;
-
 
     private Integer llmresponse1;
 
@@ -28,9 +23,10 @@ public class ResponseDto {
 
     private List<VulnerabilitiesDto> vulnerabilities;
 
-    public ResponseDto(String status, String message) {
+    public ResponseDto(String status, String message, Integer llmresponse1) {
         this.status = status;
         this.message = message;
+        this.llmresponse1 = llmresponse1;
     }
 
 
