@@ -58,30 +58,13 @@ public class ApiService {
         }
         // Python의 {"inputs": "..."}와 동일한 구조의 Map 생성
         Map<String, String> payload = Map.of("inputs", codeSnippet);
+
         return webClient_model1.post()
                 .uri("/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(payload)
                 .retrieve()
-                .bodyToMono(JsonNode.class) // 1. 응답을 JsonNode로 받습니다.
-                .map(rootNode -> {
-                    // 2. JSON 구조 [[ {"label": ...} ]] 를 직접 탐색합니다.
-                    try {
-                        // rootNode.get(0) -> [ {"label": ...} ] (첫 번째 배열)
-                        // rootNode.get(0).get(0) -> {"label": ...} (첫 번째 객체)
-                        // rootNode.get(0).get(0).get("label") -> "LABEL_1" (label 값)
-                        String label = rootNode.get(0).get(0).get("label").asText();
-
-                        // 3. 레이블 문자열을 Integer로 변환합니다.
-                        return "LABEL_1".equals(label) ? 1 : 0;
-
-                    } catch (Exception e) {
-                        // JsonNode 탐색 중 오류 발생 시 (예: API 응답 형식이 다른 경우)
-                        System.err.println("API 응답 파싱 실패: " + e.getMessage());
-                        return -1; // 오류를 나타내는 값 (예: -1)
-                    }
-                })
-                .block(); // 동기식으로 결과를 기다림
+                .bodyToMono(Integer.class).block();
     }
 
 
