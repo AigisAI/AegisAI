@@ -17,6 +17,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,12 +52,16 @@ public class ApiService {
     public Integer requestModel1(AnalysisDto analysisDto){
         //vulnerable status generate
         String codeSnippet = analysisDto.getInputcode();
-
+        if (codeSnippet == null || codeSnippet.trim().isEmpty()) {
+            System.err.println("API 호출 오류: Model 1 - 코드가 null이거나 비어있습니다.");
+            return -1; // 오류 코드 반환
+        }
         // Python의 {"inputs": "..."}와 동일한 구조의 Map 생성
-        java.util.Map<String, String> payload = java.util.Map.of("inputs", codeSnippet);
+        Map<String, String> payload = Map.of("inputs", codeSnippet);
         return webClient_model1.post()
+                .uri("/")
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(analysisDto)
+                .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(JsonNode.class) // 1. 응답을 JsonNode로 받습니다.
                 .map(rootNode -> {
