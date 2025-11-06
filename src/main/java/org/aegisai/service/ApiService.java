@@ -9,6 +9,7 @@ import org.aegisai.entity.Vulnerability;
 import org.aegisai.repository.AnalysisRepository;
 import org.aegisai.repository.VulnerabilityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +26,7 @@ public class ApiService {
     private final GeminiService geminiService;
     private final AnalysisRepository analysisRepository;
     private final VulnerabilityRepository vulnerabilityRepository;
-
+    private static final String HUGGINGFACE_API_TOKEN = "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"; // 실제 토큰으로 대체 필요
     @Autowired
     public ApiService(WebClient.Builder webClientBuilder,
                       AnalysisRepository analysisRepository,
@@ -34,6 +35,7 @@ public class ApiService {
 
         this.webClient_model1 = webClientBuilder //codebert
                 .baseUrl("https://router.huggingface.co/hf-inference/models/mrm8488/codebert-base-finetuned-detect-insecure-code")
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + HUGGINGFACE_API_TOKEN)
                 .build();
 
         this.webClient_model2 = webClientBuilder //code t5

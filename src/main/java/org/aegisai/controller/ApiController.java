@@ -38,7 +38,6 @@ public class ApiController {
         else {
             body = new ResponseDto("VULNERABLE", "취약한 코드입니다.");
         }
-
         
         body.setXaiDetectionExplanation(apiService.requestModel3(analysisDto)); //llm(프롬프트 필요)
         analysisDto.setFixedcode(apiService.requestModel2(analysisDto)); //code t5
