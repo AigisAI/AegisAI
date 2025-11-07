@@ -4,11 +4,7 @@ import { scanVulnerability, getTokenCount } from '../api/api';
 
 export default function EnhancedSecurityChecker() {
   const [inputCode, setInputCode] = useState('');
-  // const [language, setLanguage] = useState('Java'); // 🔒 Java로 고정
-  const [language, setLanguage] = useState('Java');
-
- // const language = 'Java'; // 🔒 Java로 고정
-
+  //const language = 'Java'; // 🔒 Java로 고정
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
@@ -73,9 +69,9 @@ export default function EnhancedSecurityChecker() {
       mounted = false;
       clearTimeout(timer);
     };
-  }, [inputCode, language]);
+  }, [inputCode]);
 
-  // 실시간 취약 라인 감지
+  // 실시간 취약 라인 감지 (Java 전용)
   const detectVulnerableLinesRealtime = () => {
     const lines = inputCode.split('\n');
     const vulnLines = new Set();
@@ -85,24 +81,16 @@ export default function EnhancedSecurityChecker() {
       const lineNum = idx + 1;
       let isVulnerable = false;
       
-      if (language === 'Java') {
-        if ((line.includes('Statement') && line.includes('+')) || 
-            line.includes('executeQuery') && inputCode.includes('+')) {
-          isVulnerable = true;
-        }
-        if (line.includes('md5') || line.includes('MD5') || line.includes('SHA1')) {
-          isVulnerable = true;
-        }
-        if (line.includes('printStackTrace')) {
-          isVulnerable = true;
-        }
-      } else if (language === 'C' || language === 'C++') {
-        if (line.includes('strcpy') || line.includes('gets(')) {
-          isVulnerable = true;
-        }
-        if (line.includes('malloc') && !inputCode.includes('free')) {
-          isVulnerable = true;
-        }
+      // Java 취약점 패턴 감지
+      if ((line.includes('Statement') && line.includes('+')) || 
+          line.includes('executeQuery') && inputCode.includes('+')) {
+        isVulnerable = true;
+      }
+      if (line.includes('md5') || line.includes('MD5') || line.includes('SHA1')) {
+        isVulnerable = true;
+      }
+      if (line.includes('printStackTrace')) {
+        isVulnerable = true;
       }
       
       if (isVulnerable) {
@@ -217,17 +205,31 @@ export default function EnhancedSecurityChecker() {
     setIsAnalyzing(true);
     
     try {
+      console.log('🚀 API 호출 시작...');
       const result = await scanVulnerability(inputCode, language);
+      console.log('✅ API 응답:', result);
       
       if (result.success && result.data) {
         // 백엔드 응답 형식에 맞춰 매핑
         const vulnerabilities = result.data.vulnerabilities || [];
         
+        // 🔥 중요: security_score를 제대로 가져오기
+        const securityScore = result.data.security_score !== undefined 
+          ? result.data.security_score 
+          : (result.data.securityScore !== undefined 
+              ? result.data.securityScore 
+              : (vulnerabilities.length === 0 ? 100 : Math.max(0, 100 - vulnerabilities.length * 20)));
+        
+        console.log('📊 보안 점수:', securityScore);
+        console.log('🐛 취약점 개수:', vulnerabilities.length);
+        console.log('🔍 Final Score:', Score); // 최종 점수도!
+        
+        
         setResult({
           isVulnerable: vulnerabilities.length > 0,
           vulnerabilities: vulnerabilities, // xaiDetectionExplanation, xaiFixExplanation 포함
           fixedCode: result.data.fixed_code || result.data.fixedCode || inputCode,
-          securityScore: result.data.security_score || result.data.securityScore || 100,
+          securityScore: securityScore,
           scanTime: result.data.scan_time || result.data.scanTime || '0s',
           statistics: result.data.statistics || calculateStatistics(vulnerabilities)
         });
@@ -238,111 +240,16 @@ export default function EnhancedSecurityChecker() {
         throw new Error(result.error || '알 수 없는 오류');
       }
     } catch (error) {
-      console.error('백엔드 API 호출 실패:', error);
-      alert(`백엔드 서버와 연결할 수 없습니다.\n오류: ${error.message || error}\n\n데모 모드로 실행합니다.`);
+      console.error('❌ 백엔드 API 호출 실패:', error);
+      alert(`백엔드 서버와 연결할 수 없습니다.\n오류: ${error.message || error}\n\n서버 상태를 확인해주세요.`);
+      setIsAnalyzing(false);
+      // 에러 발생 시 결과 초기화
+      setResult(null);
     }
-    
-    // 데모 모드 (백엔드 형식에 맞춤)
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const vulnerabilities = [];
-    
-    if (language === 'Java') {
-      if (inputCode.includes('Statement') && inputCode.includes('+')) {
-        const lineNum = inputCode.split('\n').findIndex(l => (l.includes('Statement') || l.includes('executeQuery')) && inputCode.includes('+')) + 1;
-        const badCodeLine = inputCode.split('\n')[lineNum - 1];
-        vulnerabilities.push({
-          message: 'SQL 쿼리를 문자열 연결(+)로 생성하면 SQL Injection 공격에 취약합니다. PreparedStatement를 사용하여 파라미터화된 쿼리를 작성하세요.',
-          lineNumber: lineNum,
-          codeSnippet: badCodeLine.trim(),
-          severity: 'Critical',
-          cweLink: 'https://cwe.mitre.org/data/definitions/89.html',
-          // 데모용 XAI 설명
-          xaiDetectionExplanation: '🤖 GraphCodeBERT 분석 결과:\n\n이 코드는 사용자 입력을 문자열 연결(+)로 SQL 쿼리에 직접 삽입하고 있습니다. 모델이 학습한 10만 개 이상의 취약 코드 패턴 중 SQL Injection의 전형적인 특징을 발견했습니다.\n\n🔍 탐지 근거:\n• AST 분석 결과 executeQuery() 호출 전 문자열 연결 연산 감지\n• 외부 입력값 검증 없이 쿼리 생성\n• CWE-89 패턴 일치도 98.7%\n\n💡 Gemini 추가 분석:\n"공격자가 userId 파라미터에 \' OR 1=1-- 같은 값을 입력하면 인증을 우회하거나 전체 데이터를 유출할 수 있습니다."',
-          xaiFixExplanation: '🛠️ CodeT5 수정 전략:\n\nPreparedStatement를 사용하여 SQL 쿼리와 데이터를 분리했습니다. 이는 OWASP Top 10에서 권장하는 표준 방어 기법입니다.\n\n✅ 수정 내용:\n• 쿼리 문자열에 ? 플레이스홀더 사용\n• setString()으로 파라미터 안전하게 바인딩\n• 자동 이스케이프 처리로 SQL Injection 차단\n\n💡 Gemini 설명:\n"PreparedStatement는 입력값을 쿼리 구조와 분리하여 처리하므로, 악의적인 SQL 명령이 포함되어도 단순 문자열로 처리됩니다. 이로써 SQL Injection 공격을 원천 차단할 수 있습니다."'
-        });
-      }
-      
-      if (inputCode.includes('md5') || inputCode.includes('MD5')) {
-        const lineNum = inputCode.split('\n').findIndex(l => l.includes('md5') || l.includes('MD5')) + 1;
-        const badCodeLine = inputCode.split('\n')[lineNum - 1];
-        vulnerabilities.push({
-          message: 'MD5는 충돌 공격에 취약한 해시 알고리즘입니다. SHA-256 이상을 사용하거나, 비밀번호 저장에는 bcrypt/Argon2를 사용하세요.',
-          lineNumber: lineNum,
-          codeSnippet: badCodeLine.trim(),
-          severity: 'High',
-          cweLink: 'https://cwe.mitre.org/data/definitions/327.html',
-          xaiDetectionExplanation: '🤖 GraphCodeBERT 분석 결과:\n\nMD5 해시 알고리즘 사용을 감지했습니다. MD5는 2004년부터 충돌 공격에 취약한 것으로 알려져 있으며, NIST에서도 사용 중단을 권고했습니다.\n\n🔍 탐지 근거:\n• MessageDigest.getInstance("MD5") 패턴 감지\n• 암호학적으로 안전하지 않은 알고리즘\n• CWE-327 (약한 암호화) 패턴 매칭\n\n💡 Gemini 추가 분석:\n"공격자가 GPU를 사용하면 초당 수십억 개의 MD5 해시를 계산할 수 있어, 레인보우 테이블 공격으로 쉽게 역산할 수 있습니다."',
-          xaiFixExplanation: '🛠️ CodeT5 수정 전략:\n\nSHA-256으로 변경하여 충돌 저항성을 확보했습니다. 만약 비밀번호 해싱이라면 bcrypt나 Argon2를 권장합니다.\n\n✅ 수정 내용:\n• MD5 → SHA-256 (256비트 출력)\n• 충돌 공격 저항성 확보\n• FIPS 140-2 인증 알고리즘\n\n💡 Gemini 설명:\n"SHA-256은 현재까지 실용적인 충돌 공격이 발견되지 않은 안전한 해시 함수입니다. 다만 비밀번호 저장 목적이라면 Salt + bcrypt/Argon2 조합을 사용하여 무차별 대입 공격을 방어해야 합니다."'
-        });
-      }
-      
-      if (inputCode.includes('printStackTrace')) {
-        const lineNum = inputCode.split('\n').findIndex(l => l.includes('printStackTrace')) + 1;
-        const badCodeLine = inputCode.split('\n')[lineNum - 1];
-        vulnerabilities.push({
-          message: 'printStackTrace()는 시스템 경로, 버전 정보 등 민감한 정보를 노출시킵니다. 로깅 프레임워크를 사용하세요.',
-          lineNumber: lineNum,
-          codeSnippet: badCodeLine.trim(),
-          severity: 'Medium',
-          cweLink: 'https://cwe.mitre.org/data/definitions/209.html',
-          xaiDetectionExplanation: '🤖 GraphCodeBERT 분석 결과:\n\nprintStackTrace() 호출을 감지했습니다. 이는 프로덕션 환경에서 민감한 정보 노출로 이어질 수 있습니다.\n\n🔍 탐지 근거:\n• 표준 출력으로 스택 트레이스 출력\n• 파일 경로, 클래스명, 라인 번호 노출\n• CWE-209 (정보 노출) 패턴\n\n💡 Gemini 추가 분석:\n"스택 트레이스에는 시스템 구조, 사용 중인 라이브러리 버전, 내부 구현 정보가 포함되어 공격자에게 유용한 정보를 제공할 수 있습니다."',
-          xaiFixExplanation: '🛠️ CodeT5 수정 전략:\n\n로깅 프레임워크(SLF4J, Log4j2)를 사용하여 에러를 안전하게 기록하도록 수정했습니다.\n\n✅ 수정 내용:\n• printStackTrace() → logger.error()\n• 로그 레벨 제어 가능\n• 프로덕션 환경에서 상세 정보 숨김\n\n💡 Gemini 설명:\n"로깅 프레임워크를 사용하면 개발 환경에서는 상세 정보를, 프로덕션에서는 일반 메시지만 표시하도록 설정할 수 있습니다. 또한 로그 파일로 안전하게 저장하여 보안 감사에도 활용할 수 있습니다."'
-        });
-      }
-    } else if (language === 'C' || language === 'C++') {
-      if (inputCode.includes('strcpy') || inputCode.includes('gets(')) {
-        const lineNum = inputCode.split('\n').findIndex(l => l.includes('strcpy') || l.includes('gets(')) + 1;
-        const badCodeLine = inputCode.split('\n')[lineNum - 1];
-        vulnerabilities.push({
-          message: 'strcpy()와 gets()는 버퍼 크기를 확인하지 않아 버퍼 오버플로우가 발생할 수 있습니다. strncpy(), fgets()를 사용하세요.',
-          lineNumber: lineNum,
-          codeSnippet: badCodeLine.trim(),
-          severity: 'Critical',
-          cweLink: 'https://cwe.mitre.org/data/definitions/120.html',
-          xaiDetectionExplanation: '🤖 GraphCodeBERT 분석 결과:\n\nstrcpy() 또는 gets() 사용을 감지했습니다. 이는 버퍼 오버플로우의 주요 원인으로 CWE Top 25에 속합니다.\n\n🔍 탐지 근거:\n• 길이 검증 없는 문자열 복사 함수\n• 스택 메모리 오버플로우 가능\n• CWE-120 패턴 일치도 99.2%\n\n💡 Gemini 추가 분석:\n"공격자가 버퍼 크기보다 긴 입력을 제공하면 스택을 덮어써 return address를 조작하여 임의 코드를 실행할 수 있습니다."',
-          xaiFixExplanation: '🛠️ CodeT5 수정 전략:\n\nstrncpy()를 사용하여 복사할 최대 길이를 명시하고, null terminator를 보장하도록 수정했습니다.\n\n✅ 수정 내용:\n• strcpy() → strncpy(dest, src, sizeof(dest) - 1)\n• 명시적 null terminator 추가\n• 버퍼 오버플로우 방지\n\n💡 Gemini 설명:\n"strncpy()는 최대 복사 길이를 제한하여 버퍼를 벗어나는 쓰기를 방지합니다. sizeof(dest) - 1로 마지막 바이트에 null terminator를 보장하여 문자열 함수들이 안전하게 동작하도록 합니다."'
-        });
-      }
-    }
-    
-    const stats = calculateStatistics(vulnerabilities);
-    const Score = Math.max(0, 100 - (
-          (stats.critical * 20) +
-          (stats.high * 10) +
-          (stats.medium * 5) +
-          (stats.low * 2)
-      ));
-    // 간단한 수정 코드 생성 (실제는 백엔드에서 처리)
-    let fixedCode = inputCode;
-    vulnerabilities.forEach(vuln => {
-      if (vuln.codeSnippet) {
-        // 간단한 패턴 기반 수정 (데모용)
-        if (vuln.codeSnippet.includes('Statement') && vuln.codeSnippet.includes('+')) {
-          fixedCode = fixedCode.replace(vuln.codeSnippet, 'PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM users WHERE id = ?");');
-        } else if (vuln.codeSnippet.includes('MD5')) {
-          fixedCode = fixedCode.replace('MD5', 'SHA-256');
-        } else if (vuln.codeSnippet.includes('printStackTrace')) {
-          fixedCode = fixedCode.replace('printStackTrace()', 'log.error("Error occurred", e)');
-        } else if (vuln.codeSnippet.includes('strcpy')) {
-          fixedCode = fixedCode.replace(vuln.codeSnippet, 'strncpy(dest, src, sizeof(dest) - 1);');
-        }
-      }
-    });
-    
-    setResult({
-      isVulnerable: vulnerabilities.length > 0,
-      vulnerabilities,
-      fixedCode,
-      securityScore: score,
-      scanTime: '2.3s',
-      statistics: stats
-    });
-    
-    setIsAnalyzing(false);
   };
 
   // Statistics 계산 (백엔드에서 안 주는 경우)
+  /*
   const calculateStatistics = (vulnerabilities) => {
     return {
       critical: vulnerabilities.filter(v => v.severity === 'Critical').length,
@@ -350,7 +257,12 @@ export default function EnhancedSecurityChecker() {
       medium: vulnerabilities.filter(v => v.severity === 'Medium').length,
       low: vulnerabilities.filter(v => v.severity === 'Low').length
     };
-  };
+  }; 
+  */
+
+  const stats = calculateStatistics(vulnerabilities);
+  console.log('🔍 stats:', stats); // 이거 추가!
+  console.log('🔍 vulnerabilities:', vulnerabilities); // 이것도!
 
   // 스크롤 동기화
   const handleScroll = (e) => {
@@ -437,22 +349,18 @@ export default function EnhancedSecurityChecker() {
     setTimeout(() => setShowCopyNotification(false), 2000);
   };
 
-  // 수정된 코드 생성 (각 취약점별)
-  const generateFixedCodeSnippet = (vuln) => {
-    const cweType = extractCWEType(vuln.cweLink);
-    
-    // CWE 타입에 따른 수정 코드 예시
-    if (cweType === 'CWE-89') {
-      return 'PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM users WHERE id = ?");\npstmt.setString(1, userId);';
-    } else if (cweType === 'CWE-327') {
-      return 'MessageDigest md = MessageDigest.getInstance("SHA-256");';
-    } else if (cweType === 'CWE-209') {
-      return 'logger.error("An error occurred", e);';
-    } else if (cweType === 'CWE-120') {
-      return 'strncpy(dest, src, sizeof(dest) - 1);\ndest[sizeof(dest) - 1] = \'\\0\';';
+  // 수정된 코드 스니펫 가져오기 (백엔드 데이터 우선)
+  const getFixedCodeSnippet = (vuln) => {
+    // 백엔드에서 제공하는 fixedCodeSnippet 또는 fixedCode가 있으면 사용
+    if (vuln.fixedCodeSnippet) {
+      return vuln.fixedCodeSnippet;
+    }
+    if (vuln.fixedCode) {
+      return vuln.fixedCode;
     }
     
-    return '/* 안전한 코드로 수정됨 */';
+    // 백엔드에서 제공하지 않으면 "백엔드에서 수정 중" 메시지 표시
+    return '/* 백엔드에서 수정된 코드를 제공합니다 */';
   };
 
   return (
@@ -468,7 +376,7 @@ export default function EnhancedSecurityChecker() {
               <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 AegisAI
               </h1>
-              <p className="text-xs text-slate-500">AI 기반 보안 취약점 분석 (XAI 적용)</p>
+              <p className="text-xs text-slate-500">AI 기반 보안 취약점 분석 (Java)</p>
             </div>
           </div>
           
@@ -490,17 +398,13 @@ export default function EnhancedSecurityChecker() {
       <main className="max-w-7xl mx-auto px-6 py-6 grid grid-cols-2 gap-6 h-[calc(100vh-88px)]">
         {/* Left Panel */}
         <div className="flex flex-col gap-4 overflow-hidden">
-          {/* Language & Analyze */}
+          {/* Analyze Button - Java 고정 표시 */}
           <div className="flex gap-3 flex-shrink-0">
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              className="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="Java">Java</option>
-              <option value="C">C</option>
-              <option value="C++">C++</option>
-            </select>
+            <div className="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 text-white flex items-center gap-2">
+              <Code className="w-4 h-4 text-blue-400" />
+              <span className="font-semibold">Java</span>
+              <span className="text-xs text-slate-500 ml-auto">언어 고정</span>
+            </div>
             
             <button
               onClick={analyzeCode}
@@ -545,7 +449,7 @@ export default function EnhancedSecurityChecker() {
                 value={inputCode}
                 onChange={(e) => setInputCode(e.target.value)}
                 onScroll={handleScroll}
-                placeholder="분석할 코드를 입력하세요..."
+                placeholder="분석할 Java 코드를 입력하세요..."
                 className="flex-1 bg-transparent text-white font-mono text-sm p-3 focus:outline-none resize-none leading-6"
                 spellCheck={false}
               />
@@ -718,7 +622,7 @@ export default function EnhancedSecurityChecker() {
                               onClick={() => showXAIExplanation(vuln, 'fix')}
                               title="클릭하여 AI 수정 설명 보기"
                             >
-                              <pre className="text-xs text-green-200 font-mono whitespace-pre-wrap break-all group-hover/fix:text-green-100">{generateFixedCodeSnippet(vuln)}</pre>
+                              <pre className="text-xs text-green-200 font-mono whitespace-pre-wrap break-all group-hover/fix:text-green-100">{getFixedCodeSnippet(vuln)}</pre>
                               <div className="text-xs text-green-400 mt-1 opacity-0 group-hover/fix:opacity-100 transition-opacity flex items-center gap-1">
                                 <Lightbulb className="w-3 h-3" />
                                 어떻게 수정했나요?
