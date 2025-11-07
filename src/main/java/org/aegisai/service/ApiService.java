@@ -64,7 +64,22 @@ public class ApiService {
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(payload)
                 .retrieve()
-                .bodyToMono(Integer.class).block();
+                // [!] 2. Integer가 아닌 JsonNode로 응답을 받습니다.
+                .bodyToMono(JsonNode.class)
+                .map(rootNode -> { // [!] 3. 받은 JsonNode를 파싱합니다.
+                    try {
+                        // 응답 형식: [[ {"label": "LABEL_1", ...} ]]
+                        String label = rootNode.get(0).get(0).get("label").asText();
+
+                        // [!] 4. 레이블을 Integer로 변환합니다.
+                        return "LABEL_1".equals(label) ? 1 : 0;
+
+                    } catch (Exception e) {
+                        System.err.println("API 응답 파싱 실패: " + e.getMessage());
+                        return -1; // 파싱 오류 시 -1
+                    }
+                })
+                .block(); // 동기식으로 Integer 결과를 기다림
     }
 
 
