@@ -38,12 +38,13 @@ public class ApiController {
         else {
             body = new ResponseDto("VULNERABLE", "취약한 코드입니다.");
         }
-        Thread.sleep(2000); // 1초 대기
+        Thread.sleep(2000); // 2초 대기
         body.setXaiDetectionExplanation(apiService.requestModel3(analysisDto)); //llm(프롬프트 필요)
-        Thread.sleep(2000); // 1초 대기
+        Thread.sleep(2000); // 2초 대기
         analysisDto.setFixedcode(apiService.requestModel2(analysisDto)); //code t5
+        Thread.sleep(1000);
         body.setXaiFixExplanation(apiService.requestModel3_1(analysisDto)); //llm(프롬프트 필요)
-        Thread.sleep(2000); // 1초 대기
+        Thread.sleep(2000); // 2초 대기
         List<VulnerabilitiesDto> vulnerabilities = apiService.requestModel4(analysisDto); //guide llm
         apiService.entityService(vulnerabilities, analysisDto);
         
