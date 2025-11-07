@@ -47,7 +47,7 @@ public class ApiController {
         Thread.sleep(2000); // 2초 대기
         List<VulnerabilitiesDto> vulnerabilities = apiService.requestModel4(analysisDto); //guide llm
         apiService.entityService(vulnerabilities, analysisDto);
-        
+        body.setFixedCode(analysisDto.getFixedcode());
         //프롬프트 필요
         body.setVulnerabilities(vulnerabilities);
 

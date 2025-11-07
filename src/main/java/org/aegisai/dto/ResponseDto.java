@@ -18,6 +18,8 @@ public class ResponseDto {
     private String xaiFixExplanation;
     //fix reason
 
+    private String fixedCode;
+
     private String status;
 
     private String message;
