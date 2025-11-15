@@ -1,5 +1,4 @@
 package org.aegisai.repository;
-
 import org.aegisai.entity.Analysis;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -9,7 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-
 @Repository
 public interface AnalysisRepository extends JpaRepository<Analysis, Long> {
 
@@ -20,6 +18,8 @@ public interface AnalysisRepository extends JpaRepository<Analysis, Long> {
     // 최근 분석 결과 조회
     @Query("SELECT a FROM Analysis a ORDER BY a.createdAt DESC")
     List<Analysis> findRecentAnalyses();
+    //List<Analysis> findTop10ByOrderByCreatedAtDesc();
+    //List<Analysis> findRecentAnalyses(Pageable pageable); -> Pageable 추가 - 최근 N개만 조회
 
     // 특정 기간의 분석 결과 조회
     @Query("SELECT a FROM Analysis a WHERE a.createdAt BETWEEN :startDate AND :endDate ORDER BY a.createdAt DESC")
