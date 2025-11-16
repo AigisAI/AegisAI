@@ -2,6 +2,7 @@ package org.aegisai.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -21,20 +22,14 @@ public class Analysis {
     @Column(name = "analysis_id")
     private Long analysisId;
 
-    /*
-    @Column(name = "inputcode", columnDefinition = "TEXT", nullable = false)
-    private String inputCode;
-    */
+
     // name 속성 제거 - Spring이 자동으로 input_code로 매핑
     @Column(columnDefinition = "TEXT", nullable = false)
+    @ColumnDefault("''")
     private String inputCode;
 
-    /*
-    @Column(name = "fixedcode", columnDefinition = "TEXT")
-    private String fixedCode;
-    */
-    // name 속성 제거 - Spring이 자동으로 input_code로 매핑
     @Column(columnDefinition = "TEXT")
+    @ColumnDefault("''")
     private String fixedCode;
 
     @CreationTimestamp
