@@ -40,16 +40,24 @@ public class ApiController {
         }
         Thread.sleep(2000); // 2초 대기
         body.setXaiDetectionExplanation(apiService.requestModel3(analysisDto)); //llm(프롬프트 필요)
+
         Thread.sleep(2000); // 2초 대기
         analysisDto.setFixedCode(apiService.requestModel2(analysisDto)); //code t5
+
         Thread.sleep(1000);
         body.setXaiFixExplanation(apiService.requestModel3_1(analysisDto)); //llm(프롬프트 필요)
+
         Thread.sleep(2000); // 2초 대기
         List<VulnerabilitiesDto> vulnerabilities = apiService.requestModel4(analysisDto); //guide llm
         apiService.entityService(vulnerabilities, analysisDto);
+
         body.setFixedCode(analysisDto.getFixedCode());
         //프롬프트 필요
         body.setVulnerabilities(vulnerabilities);
+
+        // 🆕 보안 점수 계산 및 설정
+        Integer securityScore = apiService.calculateSecurityScore(vulnerabilities);
+        body.setSecurityScore(securityScore);
 
         return body;
     }

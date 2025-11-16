@@ -172,6 +172,37 @@ public class ApiService {
             
         }
     }
+
+    // securityScore 계산 메서드
+    public Integer calculateSecurityScore(List<VulnerabilitiesDto> vulnerabilities) {
+        if (vulnerabilities == null || vulnerabilities.isEmpty()) {
+            return 100;
+        }
+
+        int totalDeduction = 0;
+
+        for (VulnerabilitiesDto vuln : vulnerabilities) {
+            String severity = vuln.getSeverity();
+            if (severity == null) continue;
+
+            switch (severity) {
+                case "Critical":
+                    totalDeduction += 25;
+                    break;
+                case "High":
+                    totalDeduction += 15;
+                    break;
+                case "Medium":
+                    totalDeduction += 10;
+                    break;
+                case "Low":
+                    totalDeduction += 5;
+                    break;
+            }
+        }
+
+        return Math.max(0, 100 - totalDeduction);
+    }
     
     // String을 SeverityStatus Enum으로 변환하는 헬퍼 메서드 (Enum 사용 안함)
     /*private SeverityStatus convertToSeverityEnum(String severity) {
