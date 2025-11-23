@@ -210,13 +210,25 @@ public class ApiService {
                 case "Critical":
                     totalDeduction += 25;
                     break;
+                case "critical":
+                    totalDeduction += 25;
+                    break;
                 case "High":
+                    totalDeduction += 15;
+                    break;
+                case "high":
                     totalDeduction += 15;
                     break;
                 case "Medium":
                     totalDeduction += 10;
                     break;
+                case "medium":
+                    totalDeduction += 10;
+                    break;
                 case "Low":
+                    totalDeduction += 5;
+                    break;
+                case "low":
                     totalDeduction += 5;
                     break;
             }
