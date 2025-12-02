@@ -81,6 +81,19 @@
 | **Gemini API** | (자연어 설명) |
 
 *(PDF 기반)*
+## 🚀 AI Pipeline & Model Serving
+
+이 프로젝트는 **Hybrid AI Architecture**를 채택하여, 로컬 SLM(Small Language Model)과 클라우드 LLM의 장점을 결합했습니다.
+
+### 1. Model Pipeline (`model_pipeline.py`)
+* **Detection:** `CodeBERT`를 사용하여 취약점 유무를 빠르게 분류
+* **Auto-fix (Core):** `CodeT5-base` 모델에 보안 데이터셋을 학습시킨 **LoRA Adapter**를 적용하여 코드 수정
+* **Explanation:** `Google Gemini Pro`를 연동하여 수정된 이유를 자연어로 설명 (XAI)
+
+### 2. Fine-tuned Models (Hugging Face)
+ 직접 파인튜닝하여 배포한 모델은 아래 링크에서 확인하실 수 있습니다. (학습 코드는 로컬 환경에 있어 추후 업로드 예정)
+* **Vulnerability Fixer (LoRA):** [mangsense/codet5-base-clean-LoRA](https://huggingface.co/mangsense/codet5-base-clean-LoRA)
+* **Vulnerability Detector:** [mangsense/codebert_java](https://huggingface.co/mangsense/codebert_java)
 
 ## 5.4 Cooperation
 | | |
